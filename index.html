@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>MU Taxi Order</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .form-box {
+      background: #1e293b;
+      padding: 25px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    input, textarea {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #22c55e;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+
+    .success {
+      display: none;
+      color: #4ade80;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-box">
+  <h2>🚕 MU Taxi Order</h2>
+
+  <form id="orderForm">
+    <input name="name" placeholder="Tên nhân vật" required>
+    <input name="server" placeholder="Server" required>
+    <input name="level" placeholder="Level">
+    <textarea name="request" placeholder="Yêu cầu (map, tọa độ...)"></textarea>
+    <input name="contact" placeholder="Discord / Zalo">
+
+    <button type="submit">Submit Order</button>
+  </form>
+
+  <div class="success" id="successMsg">
+    ✅ Đã gửi! Guild sẽ xử lý sớm.
+  </div>
+</div>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbzwkDb2VtPjVXid4yY3MfR29uBz11A8DLwWw2wgiBmzSpx67_u-f_SPmi79dx_YN9HLcg/exec";
+
+const form = document.getElementById("orderForm");
+const successMsg = document.getElementById("successMsg");
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+
+  fetch(scriptURL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(() => {
+    form.reset();
+    successMsg.style.display = "block";
+  })
+  .catch(err => alert("Lỗi gửi form"));
+});
+</script>
+
+</body>
+</html>
