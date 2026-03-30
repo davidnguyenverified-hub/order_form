@@ -1,73 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>MU Taxi Booking/ Items Order Form</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      justify-content: center;
-      padding: 40px;
-    }
+<meta charset="UTF-8">
+<title>MU Taxi Booking / Items Order</title>
 
-    .form-box {
-      background: #1e293b;
-      padding: 25px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 400px;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: white;
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
 
-    input, textarea {
-      width: 100%;
-      margin-bottom: 12px;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-    }
+/* BOX */
+.form-box {
+  background: rgba(30, 41, 59, 0.9);
+  padding: 30px;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.2);
+  animation: fadeIn 0.6s ease;
+}
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #22c55e;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}
 
-    button:hover {
-      background: #16a34a;
-    }
+/* TITLE */
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-    .success {
-      display: none;
-      color: #4ade80;
-      text-align: center;
-      margin-top: 10px;
-    }
-  </style>
+/* INPUT */
+input, textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #0f172a;
+  color: white;
+  outline: none;
+  transition: 0.2s;
+}
+
+input:focus, textarea:focus {
+  box-shadow: 0 0 10px #22c55e;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  padding: 14px;
+  background: #22c55e;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #16a34a;
+  box-shadow: 0 0 15px #22c55e;
+}
+
+/* LOADING */
+.loading {
+  display: none;
+  text-align: center;
+  margin-top: 10px;
+  color: #facc15;
+}
+
+/* SUCCESS */
+.success {
+  display: none;
+  color: #4ade80;
+  text-align: center;
+  margin-top: 10px;
+  animation: fadeIn 0.5s ease;
+}
+
+/* ERROR */
+.error {
+  display: none;
+  color: #f87171;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.note {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 10px;
+}
+</style>
 </head>
+
 <body>
 
 <div class="form-box">
-  <h2>🚕 MU Taxi Booking/ Items Order Form</h2>
+  <h2>🚕 MU Taxi / Order Form</h2>
+
+  <div class="note">
+    Premium: Free taxi (active member)<br>
+    Standard: Non-profit guild member<br>
+    Service: Paid for outsiders
+  </div>
 
   <form id="orderForm">
-    <input name="name" placeholder="Your character name" required>
-    <input name="server" placeholder="Server" required>
-    <input name="level" placeholder="Level">
-    <textarea name="request" placeholder="Your request (e.g. Taxi SOD 7days / Buy 200K Ruud / Buy Items ID Wing-010/ etc.) "></textarea>
-    <input name="contact" placeholder="Discord / WhatApps / Zalo / Messenger">
 
-    <button type="submit">Submit Order</button>
+    <input name="name" placeholder="Character Name *" required>
+
+    <input name="server" placeholder="Server *" required>
+
+    <input name="level" placeholder="Level (optional)">
+
+    <textarea name="request" placeholder="Request (Taxi / Buy Items / Ruud...)" required></textarea>
+
+    <input name="contact" placeholder="Contact (Discord / WhatsApp / etc.)" required>
+
+    <button type="submit" id="submitBtn">Submit Order</button>
+
   </form>
 
+  <div class="loading" id="loadingMsg">⏳ Sending request...</div>
+
   <div class="success" id="successMsg">
-    ✅ Request sent ! I will contact you soon !
+    ✅ Request sent! I will contact you soon.
+  </div>
+
+  <div class="error" id="errorMsg">
+    ❌ Failed to send. Try again.
   </div>
 </div>
 
@@ -75,24 +145,46 @@
 const scriptURL = "https://script.google.com/macros/s/AKfycbzwkDb2VtPjVXid4yY3MfR29uBz11A8DLwWw2wgiBmzSpx67_u-f_SPmi79dx_YN9HLcg/exec";
 
 const form = document.getElementById("orderForm");
+const loading = document.getElementById("loadingMsg");
 const successMsg = document.getElementById("successMsg");
+const errorMsg = document.getElementById("errorMsg");
+const submitBtn = document.getElementById("submitBtn");
 
-form.addEventListener("submit", e => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // reset UI
+  successMsg.style.display = "none";
+  errorMsg.style.display = "none";
+
+  // loading state
+  loading.style.display = "block";
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Sending...";
 
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
-  fetch(scriptURL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(() => {
+  try {
+    const res = await fetch(scriptURL, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!res.ok) throw new Error();
+
     form.reset();
     successMsg.style.display = "block";
-  })
-  .catch(err => alert("Lỗi gửi form"));
+  } catch (err) {
+    errorMsg.style.display = "block";
+  }
+
+  loading.style.display = "none";
+  submitBtn.disabled = false;
+  submitBtn.innerText = "Submit Order";
 });
 </script>
 
